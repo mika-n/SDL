@@ -466,7 +466,9 @@ static BOOL CALLBACK EnumJoystickDetectCallback(LPCDIDEVICEINSTANCE pDeviceInsta
      */
     caps.dwSize = sizeof(caps);
     CHECK(SUCCEEDED(IDirectInputDevice8_GetCapabilities(device, &caps)));
-    CHECK(caps.dwAxes > 0 && caps.dwButtons > 0);
+    //  mika-n/RallysimFans (RSF):
+    //    RBRControls plugin wants to see button-pads even when there are just button or just analog axis
+    CHECK(caps.dwAxes > 0 || caps.dwButtons > 0);
 
     CHECK(!SDL_IsXInputDevice(vendor, product, hidPath));
 
@@ -760,9 +762,11 @@ int SDL_DINPUT_JoystickOpen(SDL_Joystick *joystick, JoyStick_DeviceData *joystic
 
     /* Acquire shared access. Exclusive access is required for forces,
      * though. */
+    // mika-n/RallysimFans (RSF):
+    //   RBRControls plugin doesn't need exclusive access and FFB support. RBR handles FFB events on its own, so let's open the device as non-exclusive
     result =
         IDirectInputDevice8_SetCooperativeLevel(joystick->hwdata->InputDevice, SDL_HelperWindow,
-                                                DISCL_EXCLUSIVE |
+                                                DISCL_NONEXCLUSIVE |
                                                     DISCL_BACKGROUND);
     if (FAILED(result)) {
         return SetDIerror("IDirectInputDevice8::SetCooperativeLevel", result);
@@ -783,6 +787,10 @@ int SDL_DINPUT_JoystickOpen(SDL_Joystick *joystick, JoyStick_DeviceData *joystic
     if (FAILED(result)) {
         return SetDIerror("IDirectInputDevice8::GetCapabilities", result);
     }
+
+    // mika-n/RallysimFans (RSF):
+    //   RBRControls plugin doesn't need and should not let SDL to acquire FFB events because it would interfere with RBR ffb events. Disable ffb capability
+    joystick->hwdata->Capabilities.dwFlags &= ~DIDC_FORCEFEEDBACK;
 
     /* Force capable? */
     if (joystick->hwdata->Capabilities.dwFlags & DIDC_FORCEFEEDBACK) {
