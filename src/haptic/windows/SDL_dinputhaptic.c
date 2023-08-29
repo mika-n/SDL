@@ -67,6 +67,10 @@ int SDL_DINPUT_HapticInit(void)
     HINSTANCE instance;
     DWORD devClass;
 
+    // mika-n/RallysimFans (RSF):
+    // haptic usage on purpose because RBR takes care of all FFB effects
+    return SDL_Unsupported();
+
     if (dinput != NULL) { /* Already open. */
         return SDL_SetError("Haptic: SubSystem already open.");
     }

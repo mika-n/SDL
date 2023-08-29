@@ -42,6 +42,10 @@ static SDL_bool loaded_xinput = SDL_FALSE;
 
 int SDL_XINPUT_HapticInit(void)
 {
+    // mika-n/RallysimFans (RSF):
+    // Disable haptic usage on purpose because RBR takes care of all FFB effects
+    return SDL_Unsupported();
+
     if (SDL_GetHintBoolean(SDL_HINT_XINPUT_ENABLED, SDL_TRUE)) {
         loaded_xinput = (WIN_LoadXInputDLL() == 0) ? SDL_TRUE : SDL_FALSE;
     }
