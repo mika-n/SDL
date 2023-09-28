@@ -4,6 +4,9 @@ if(CMAKE_CURRENT_SOURCE_DIR STREQUAL CMAKE_CURRENT_BINARY_DIR)
   message(FATAL_ERROR "Prevented in-tree build. Please create a build directory outside of the SDL source code and run \"cmake -S ${CMAKE_SOURCE_DIR} -B .\" from there")
 endif()
 
+# MSVC runtime library flags are selected by an abstraction.
+set(CMAKE_POLICY_DEFAULT_CMP0091 NEW)
+
 # See docs/release_checklist.md
 project(SDL3 LANGUAGES C CXX VERSION "3.0.0")
 
@@ -112,8 +115,8 @@ endif()
 #  for systems without support. It's not currently enough to not use
 #  pthread functions in a pthread-build; it won't start up on unsupported
 #  browsers. As such, you have to explicitly enable it on Emscripten builds
-#  for the time being. This default with change to ON once this becomes
-#  commonly supported in browsers or the Emscripten teams makes a single
+#  for the time being. This default will change to ON once this becomes
+#  commonly supported in browsers or the Emscripten team makes a single
 #  binary work everywhere.
 if (UNIX_OR_MAC_SYS AND NOT EMSCRIPTEN)
   set(SDL_PTHREADS_DEFAULT ON)
@@ -158,6 +161,9 @@ endif()
 if(MSVC)
   option(SDL_FORCE_STATIC_VCRT "Force /MT for static VC runtimes" OFF)
   if(SDL_FORCE_STATIC_VCRT)
+    if(NOT DEFINED CMAKE_MSVC_RUNTIME_LIBRARY)
+      set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>")
+    endif()
     foreach(flag_var
         CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
         CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
@@ -3360,6 +3366,7 @@ if(NOT SDL_DISABLE_INSTALL)
     SDL_generate_manpages(
       SYMBOL "SDL_Init"
       WIKIHEADERS_PL_PATH "${CMAKE_CURRENT_SOURCE_DIR}/build-scripts/wikiheaders.pl"
+      REVISION "${SDL_REVISION}"
     )
     if(TARGET SDL3-javadoc)
       set(SDL_INSTALL_JAVADOCDIR "${CMAKE_INSTALL_DATAROOTDIR}/javadoc" CACHE PATH "Path where to install SDL3 javadoc")

@@ -560,10 +560,10 @@ macro(CheckWayland)
         set(LibDecor_PKG_CONFIG_SPEC libdecor-0)
         pkg_check_modules(PC_LIBDECOR IMPORTED_TARGET ${LibDecor_PKG_CONFIG_SPEC})
         if(PC_LIBDECOR_FOUND)
-          # Version 0.1.2 or higher is needed for suspended window state and statically linked min/max getters.
-          if(PC_LIBDECOR_VERSION VERSION_GREATER_EQUAL "0.1.2")
-            set(SDL_HAVE_LIBDECOR_VER_0_1_2 1)
-            set(LibDecor_PKG_CONFIG_SPEC "libdecor-0>=0.1.2")
+          # Version 0.2.0 or higher is needed for suspended window state and statically linked min/max getters.
+          if(PC_LIBDECOR_VERSION VERSION_GREATER_EQUAL "0.2.0")
+            set(SDL_HAVE_LIBDECOR_VER_0_2_0 1)
+            set(LibDecor_PKG_CONFIG_SPEC "libdecor-0>=0.2.0")
           endif()
           set(HAVE_WAYLAND_LIBDECOR TRUE)
           set(HAVE_LIBDECOR_H 1)
@@ -1029,7 +1029,14 @@ macro(CheckHIDAPI)
       if(PC_LIBUSB_FOUND)
         cmake_push_check_state()
         list(APPEND CMAKE_REQUIRED_INCLUDES ${PC_LIBUSB_INCLUDE_DIRS})
-        check_include_file(libusb.h HAVE_LIBUSB_H)
+        list(APPEND CMAKE_REQUIRED_LIBRARIES PkgConfig::PC_LIBUSB)
+        check_c_source_compiles("
+          #include <stddef.h>
+          #include <libusb.h>
+          int main(int argc, char **argv) {
+            libusb_close(NULL);
+            return 0;
+          }" HAVE_LIBUSB_H)
         cmake_pop_check_state()
         if(HAVE_LIBUSB_H)
           set(HAVE_LIBUSB TRUE)
