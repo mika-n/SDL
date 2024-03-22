@@ -155,6 +155,10 @@ SDL_bool HIDAPI_SupportsPlaystationDetection(Uint16 vendor, Uint16 product)
         }
         return SDL_TRUE;
     case USB_VENDOR_MADCATZ:
+        if (product == USB_PRODUCT_MADCATZ_SAITEK_SIDE_PANEL_CONTROL_DECK) {
+            /* This is not a Playstation compatible device */
+            return SDL_FALSE;
+        }
         return SDL_TRUE;
     case USB_VENDOR_NACON:
         return SDL_TRUE;
